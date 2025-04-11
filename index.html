@@ -146,7 +146,6 @@
   'https://connect.facebook.net/en_US/fbevents.js');
   
   fbq('init', '1381611613020370');
-  fbq('set', 'test_event_code', 'TEST68374');
   fbq('track', 'PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none"
@@ -239,7 +238,6 @@
         fbp: "_fbp",
         fbc: "_fbc",
         pixel_id: "1381611613020370"
-        test_event_code: "TEST68374"
       })
     }).then(res => console.log("Evento de teste enviado!", res))
       .catch(err => console.error("Erro ao enviar evento de teste:", err));
