@@ -240,10 +240,8 @@
     const fbp = getCookie('_fbp') || '';
     const fbc = getCookie('_fbc') || '';
 
-    // Envia evento via Pixel
     fbq('track', 'Lead');
 
-    // Envia evento via CAPI
     fetch("https://meta-capi-server.onrender.com/send-event", {
       method: "POST",
       headers: {
@@ -254,12 +252,12 @@
         event_id: "lead_" + Date.now(),
         user_data: {
           client_user_agent: navigator.userAgent,
-          fbp: fbp,
-          fbc: fbc
+          fbp,
+          fbc
         }
       })
     }).then(() => {
-      setTimeout(function () {
+      setTimeout(() => {
         window.location.href = 'https://maper.info/forasteirotips';
       }, 10);
     }).catch(err => {
@@ -268,7 +266,7 @@
     });
   }
 
-  window.addEventListener('DOMContentLoaded', function () {
+  window.addEventListener('DOMContentLoaded', () => {
     const fbp = getCookie('_fbp') || '';
     const fbc = getCookie('_fbc') || '';
 
@@ -282,8 +280,8 @@
         event_id: "pgview_" + Date.now(),
         user_data: {
           client_user_agent: navigator.userAgent,
-          fbp: fbp,
-          fbc: fbc
+          fbp,
+          fbc
         }
       })
     })
@@ -291,7 +289,6 @@
     .catch(err => console.error("Erro PageView CAPI:", err));
   });
 </script>
-
 
 </body>
 </html>
