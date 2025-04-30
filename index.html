@@ -188,9 +188,6 @@
     </div>
   </div>
 
-
-
-  
   <div class="title">
     Parabéns, você acaba de ganhar o VIP exclusivo!
   </div>
@@ -236,8 +233,11 @@
     return Math.random().toString(36).substring(2, 15);
   }
 
+  function gerarFbpValido() {
+    return `fb.1.${Math.floor(Date.now() / 1000)}.${Math.floor(Math.random() * 1e10)}`;
+  }
+
   async function irTelegram() {
-    // ✅ Evita enviar mais de um Lead por sessão
     if (localStorage.getItem("lead_enviado")) {
       window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
       return;
@@ -247,7 +247,7 @@
     const fbc = getCookie('_fbc');
     const eventId = "lead_" + Date.now();
 
-    const finalFbp = /^fb\.1\.\d+\.\d+$/.test(fbp) ? fbp : `fb.1.${Date.now()}.${Math.floor(Math.random() * 1000000000)}`;
+    const finalFbp = /^fb\.1\.\d+\.\d+$/.test(fbp) ? fbp : gerarFbpValido();
     const finalFbc = fbc || gerarIdAleatorio();
 
     const payload = {
@@ -286,10 +286,8 @@
   }
 
   window.addEventListener('DOMContentLoaded', () => {
-    const jaEnviou = localStorage.getItem("pageview_enviado");
-
-    if (!jaEnviou) {
-      const fbp = getCookie('_fbp') || gerarIdAleatorio();
+    if (!localStorage.getItem("pageview_enviado")) {
+      const fbp = getCookie('_fbp') || gerarFbpValido();
       const fbc = getCookie('_fbc') || gerarIdAleatorio();
       const eventId = "pgview_" + Date.now();
 
@@ -313,8 +311,6 @@
     }
   });
 </script>
-
-</script>
-
+  
 </body>
 </html>
