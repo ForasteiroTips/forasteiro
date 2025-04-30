@@ -239,32 +239,44 @@
     return Math.random().toString(36).substring(2, 15);
   }
 
-  function irTelegram() {
-    const fbp = getCookie('_fbp') || gerarIdAleatorio();
-    const fbc = getCookie('_fbc') || gerarIdAleatorio();
+  async function irTelegram() {
+    const fbp = getCookie('_fbp');
+    const fbc = getCookie('_fbc');
     const eventId = "lead_" + Date.now();
 
-    fetch("https://meta-capi-server.onrender.com/send-event", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        event_name: "Lead",
-        event_id: eventId,
-        user_data: {
-          client_user_agent: navigator.userAgent,
-          fbp,
-          fbc
-        }
-      })
-    })
-    .then(() => {
+    const finalFbp = /^fb\.1\.\d+\.\d+$/.test(fbp) ? fbp : `fb.1.${Date.now()}.${Math.floor(Math.random() * 1000000000)}`;
+    const finalFbc = fbc || gerarIdAleatorio();
+
+    const payload = {
+      event_name: "Lead",
+      event_id: eventId,
+      user_data: {
+        client_user_agent: navigator.userAgent,
+        fbp: finalFbp,
+        fbc: finalFbc
+      }
+    };
+
+    let enviado = false;
+
+    try {
+      const res = await fetch("https://meta-capi-server.onrender.com/send-event", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      enviado = res.ok;
+    } catch (e) {
+      console.warn("Falha no envio do evento Lead:", e);
+    }
+
+    // Aguarda um pequeno delay extra para garantir envio no celular
+    setTimeout(() => {
       window.location.href = "https://maper.info/forasteirotips";
-    })
-    .catch(() => {
-      window.location.href = "https://maper.info/forasteirotips";
-    });
+    }, enviado ? 100 : 500); // 100ms se enviado, 500ms se falhou (garantia)
   }
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -289,7 +301,6 @@
     });
   });
 </script>
-
 
 </body>
 </html>
