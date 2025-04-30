@@ -237,11 +237,14 @@
   }
 
   function irTelegram() {
-    const fbp = getCookie('_fbp') || '';
-    const fbc = getCookie('_fbc') || '';
+    const fbp = getCookie('_fbp') || Math.random().toString();
+    const fbc = getCookie('_fbc') || Math.random().toString();
+    const eventId = "lead_" + Date.now();
 
+    // Envia evento para o Pixel (navegador)
     fbq('track', 'Lead');
 
+    // Envia evento via API de Conversões (servidor)
     fetch("https://meta-capi-server.onrender.com/send-event", {
       method: "POST",
       headers: {
@@ -249,26 +252,24 @@
       },
       body: JSON.stringify({
         event_name: "Lead",
-        event_id: "lead_" + Date.now(),
+        event_id: eventId,
         user_data: {
           client_user_agent: navigator.userAgent,
           fbp,
           fbc
         }
       })
-    }).then(() => {
-      setTimeout(() => {
-        window.location.href = 'https://maper.info/forasteirotips';
-      }, 10);
-    }).catch(err => {
-      console.error("Erro ao enviar Lead via CAPI:", err);
-      window.location.href = 'https://maper.info/forasteirotips';
+    }).finally(() => {
+      // Redireciona para o grupo do Telegram
+      window.location.href = "https://maper.info/forasteirotips";
     });
   }
 
+  // Envio automático do PageView via API
   window.addEventListener('DOMContentLoaded', () => {
-    const fbp = getCookie('_fbp') || '';
-    const fbc = getCookie('_fbc') || '';
+    const fbp = getCookie('_fbp') || Math.random().toString();
+    const fbc = getCookie('_fbc') || Math.random().toString();
+    const eventId = "pgview_" + Date.now();
 
     fetch("https://meta-capi-server.onrender.com/send-event", {
       method: "POST",
@@ -277,18 +278,17 @@
       },
       body: JSON.stringify({
         event_name: "PageView",
-        event_id: "pgview_" + Date.now(),
+        event_id: eventId,
         user_data: {
           client_user_agent: navigator.userAgent,
           fbp,
           fbc
         }
       })
-    })
-    .then(res => console.log("PageView via CAPI enviado:", res))
-    .catch(err => console.error("Erro PageView CAPI:", err));
+    });
   });
 </script>
+
 
 </body>
 </html>
