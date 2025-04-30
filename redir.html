@@ -1,26 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Redirecionando...</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script>
-    setTimeout(() => {
-      window.location.href = "https://maper.info/forasteirotips";
-    }, 1000); // espera 1 segundo
-  </script>
   <style>
     body {
-      background-color: #000;
-      color: #ffa500;
-      font-family: Arial, sans-serif;
+      background: black;
+      color: orange;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
       text-align: center;
-      padding-top: 100px;
-      font-size: 1.5rem;
+      padding: 20px;
     }
   </style>
 </head>
 <body>
-  Estamos te redirecionando para o grupo VIP do Telegram...
+  <h1>ÚLTIMA VAGA VIP GRÁTIS...</h1>
+
+  <script>
+    // Vai para o Telegram após 1 segundo
+    setTimeout(() => {
+      window.location.href = "https://maper.info/forasteirotips";
+    }, 1000);
+
+    // Se a aba do navegador ainda estiver aberta após 30 segundos, volta para a landing
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 5000);
+  </script>
 </body>
 </html>
