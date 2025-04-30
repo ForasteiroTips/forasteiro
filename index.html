@@ -277,6 +277,9 @@
   }
 
   window.addEventListener('DOMContentLoaded', () => {
+  const jaEnviou = localStorage.getItem("pageview_enviado");
+
+  if (!jaEnviou) {
     const fbp = getCookie('_fbp') || gerarIdAleatorio();
     const fbc = getCookie('_fbc') || gerarIdAleatorio();
     const eventId = "pgview_" + Date.now();
@@ -295,8 +298,11 @@
           fbc
         }
       })
+    }).then(() => {
+      localStorage.setItem("pageview_enviado", "true");
     });
-  });
+  }
+});
 </script>
 
 </body>
