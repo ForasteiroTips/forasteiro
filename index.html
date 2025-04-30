@@ -236,15 +236,17 @@
     return null;
   }
 
+  function gerarIdAleatorio() {
+    return Math.random().toString(36).substring(2, 15);
+  }
+
   function irTelegram() {
-    const fbp = getCookie('_fbp') || Math.random().toString();
-    const fbc = getCookie('_fbc') || Math.random().toString();
+    const fbp = getCookie('_fbp') || gerarIdAleatorio();
+    const fbc = getCookie('_fbc') || gerarIdAleatorio();
     const eventId = "lead_" + Date.now();
 
-    // Envia evento para o Pixel (navegador)
     fbq('track', 'Lead');
 
-    // Envia evento via API de Conversões (servidor)
     fetch("https://meta-capi-server.onrender.com/send-event", {
       method: "POST",
       headers: {
@@ -260,15 +262,13 @@
         }
       })
     }).finally(() => {
-      // Redireciona para o grupo do Telegram
       window.location.href = "https://maper.info/forasteirotips";
     });
   }
 
-  // Envio automático do PageView via API
   window.addEventListener('DOMContentLoaded', () => {
-    const fbp = getCookie('_fbp') || Math.random().toString();
-    const fbc = getCookie('_fbc') || Math.random().toString();
+    const fbp = getCookie('_fbp') || gerarIdAleatorio();
+    const fbc = getCookie('_fbc') || gerarIdAleatorio();
     const eventId = "pgview_" + Date.now();
 
     fetch("https://meta-capi-server.onrender.com/send-event", {
@@ -288,7 +288,6 @@
     });
   });
 </script>
-
 
 </body>
 </html>
