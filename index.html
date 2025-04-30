@@ -245,7 +245,7 @@
     const fbc = getCookie('_fbc') || gerarIdAleatorio();
     const eventId = "lead_" + Date.now();
 
-    fbq('track', 'Lead');
+    // ⛔️ REMOVIDO: fbq('track', 'Lead')
 
     fetch("https://meta-capi-server.onrender.com/send-event", {
       method: "POST",
@@ -288,6 +288,7 @@
     });
   });
 </script>
+
 
 </body>
 </html>
