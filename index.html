@@ -237,6 +237,12 @@
   }
 
   async function irTelegram() {
+    // ✅ Evita enviar mais de um Lead por sessão
+    if (localStorage.getItem("lead_enviado")) {
+      window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
+      return;
+    }
+
     const fbp = getCookie('_fbp');
     const fbc = getCookie('_fbc');
     const eventId = "lead_" + Date.now();
@@ -266,43 +272,48 @@
       });
 
       enviado = res.ok;
+
+      if (enviado) {
+        localStorage.setItem("lead_enviado", "true");
+      }
     } catch (e) {
       console.warn("Falha no envio do evento Lead:", e);
     }
 
-    // Aguarda um pequeno delay extra para garantir envio no celular
     setTimeout(() => {
       window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
-    }, enviado ? 100 : 500); // 100ms se enviado, 500ms se falhou (garantia)
+    }, enviado ? 100 : 500);
   }
 
   window.addEventListener('DOMContentLoaded', () => {
-  const jaEnviou = localStorage.getItem("pageview_enviado");
+    const jaEnviou = localStorage.getItem("pageview_enviado");
 
-  if (!jaEnviou) {
-    const fbp = getCookie('_fbp') || gerarIdAleatorio();
-    const fbc = getCookie('_fbc') || gerarIdAleatorio();
-    const eventId = "pgview_" + Date.now();
+    if (!jaEnviou) {
+      const fbp = getCookie('_fbp') || gerarIdAleatorio();
+      const fbc = getCookie('_fbc') || gerarIdAleatorio();
+      const eventId = "pgview_" + Date.now();
 
-    fetch("https://meta-capi-server.onrender.com/send-event", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        event_name: "PageView",
-        event_id: eventId,
-        user_data: {
-          client_user_agent: navigator.userAgent,
-          fbp,
-          fbc
-        }
-      })
-    }).then(() => {
-      localStorage.setItem("pageview_enviado", "true");
-    });
-  }
-});
+      fetch("https://meta-capi-server.onrender.com/send-event", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          event_name: "PageView",
+          event_id: eventId,
+          user_data: {
+            client_user_agent: navigator.userAgent,
+            fbp,
+            fbc
+          }
+        })
+      }).then(() => {
+        localStorage.setItem("pageview_enviado", "true");
+      });
+    }
+  });
+</script>
+
 </script>
 
 </body>
