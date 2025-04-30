@@ -228,33 +228,36 @@
     </a>
   </div>
 
-
 <script>
-  window.addEventListener('DOMContentLoaded', function () {
+  function irTelegram() {
+    // Envia evento via Pixel
+    fbq('track', 'Lead');
+
+    // Envia evento via API de Conversões
     fetch("https://meta-capi-server.onrender.com/send-event", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        event_name: "PageView",
-        event_source_url: window.location.href,
-        action_source: "website",
-        email: "teste@gmail.com",
-        fbp: "_fbp",
-        fbc: "_fbc",
-        pixel_id: "1381611613020370"
+        event_name: "Lead",
+        event_id: "lead_" + Date.now(),
+        user_data: {
+          client_user_agent: navigator.userAgent,
+          fbp: "_fbp",
+          fbc: "_fbc"
+        }
       })
-    }).then(res => console.log("Evento de teste enviado!", res))
-      .catch(err => console.error("Erro ao enviar evento de teste:", err));
-  });
-</script>
-<script>
-  function irTelegram() {
-    fbq('track', 'Lead');
-    setTimeout(function () {
+    }).then(() => {
+      // Redireciona após o envio
+      setTimeout(function () {
+        window.location.href = 'https://maper.info/forasteirotips';
+      }, 10);
+    }).catch(err => {
+      console.error("Erro ao enviar Lead via CAPI:", err);
+      // Redireciona mesmo com erro
       window.location.href = 'https://maper.info/forasteirotips';
-    }, 10);
+    });
   }
 </script>
 
