@@ -239,32 +239,32 @@
     return Math.random().toString(36).substring(2, 15);
   }
 
-  async function irTelegram() {
+  function irTelegram() {
     const fbp = getCookie('_fbp') || gerarIdAleatorio();
     const fbc = getCookie('_fbc') || gerarIdAleatorio();
     const eventId = "lead_" + Date.now();
 
-    try {
-      await fetch("https://meta-capi-server.onrender.com/send-event", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          event_name: "Lead",
-          event_id: eventId,
-          user_data: {
-            client_user_agent: navigator.userAgent,
-            fbp,
-            fbc
-          }
-        })
-      });
-    } catch (err) {
-      console.warn("Erro ao enviar Lead:", err);
-    }
-
-    window.location.href = "https://maper.info/forasteirotips";
+    fetch("https://meta-capi-server.onrender.com/send-event", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        event_name: "Lead",
+        event_id: eventId,
+        user_data: {
+          client_user_agent: navigator.userAgent,
+          fbp,
+          fbc
+        }
+      })
+    })
+    .then(() => {
+      window.location.href = "https://maper.info/forasteirotips";
+    })
+    .catch(() => {
+      window.location.href = "https://maper.info/forasteirotips";
+    });
   }
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -289,6 +289,7 @@
     });
   });
 </script>
+
 
 </body>
 </html>
