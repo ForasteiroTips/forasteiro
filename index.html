@@ -229,12 +229,17 @@
     return null;
   }
 
-  function gerarIdAleatorio() {
-    return Math.random().toString(36).substring(2, 15);
+  function getFbclidFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("fbclid");
   }
 
   function gerarFbpValido() {
     return `fb.1.${Math.floor(Date.now() / 1000)}.${Math.floor(Math.random() * 1e10)}`;
+  }
+
+  function gerarFbc(fbclid) {
+    return fbclid ? `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}` : null;
   }
 
   async function irTelegram() {
@@ -243,20 +248,22 @@
       return;
     }
 
-    const fbp = getCookie('_fbp');
-    const fbc = getCookie('_fbc');
+    const fbp = getCookie('_fbp') || gerarFbpValido();
+    const fbclid = getFbclidFromUrl();
+    const fbc = getCookie('_fbc') || gerarFbc(fbclid) || null;
     const eventId = "lead_" + Date.now();
-
-    const finalFbp = /^fb\.1\.\d+\.\d+$/.test(fbp) ? fbp : gerarFbpValido();
-    const finalFbc = fbc || gerarIdAleatorio();
 
     const payload = {
       event_name: "Lead",
       event_id: eventId,
       user_data: {
         client_user_agent: navigator.userAgent,
-        fbp: finalFbp,
-        fbc: finalFbc
+        fbp,
+        fbc
+      },
+      custom_data: {
+        currency: "BRL",
+        value: 0
       }
     };
 
@@ -265,17 +272,12 @@
     try {
       const res = await fetch("https://meta-capi-server.onrender.com/send-event", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
 
       enviado = res.ok;
-
-      if (enviado) {
-        localStorage.setItem("lead_enviado", "true");
-      }
+      if (enviado) localStorage.setItem("lead_enviado", "true");
     } catch (e) {
       console.warn("Falha no envio do evento Lead:", e);
     }
@@ -288,14 +290,13 @@
   window.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem("pageview_enviado")) {
       const fbp = getCookie('_fbp') || gerarFbpValido();
-      const fbc = getCookie('_fbc') || gerarIdAleatorio();
+      const fbclid = getFbclidFromUrl();
+      const fbc = getCookie('_fbc') || gerarFbc(fbclid) || null;
       const eventId = "pgview_" + Date.now();
 
       fetch("https://meta-capi-server.onrender.com/send-event", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           event_name: "PageView",
           event_id: eventId,
