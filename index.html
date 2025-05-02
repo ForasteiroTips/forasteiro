@@ -239,14 +239,21 @@
   }
 
   function gerarFbc(fbclid) {
-    return fbclid ? `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}` : null;
+    if (!fbclid) return null;
+    const limpo = fbclid.split("&")[0];
+    return `fb.1.${Math.floor(Date.now() / 1000)}.${limpo}`;
   }
 
   async function irTelegram() {
+    const redir = "https://forasteirotips.github.io/forasteiro/redir.html";
+
     if (localStorage.getItem("lead_enviado")) {
-      window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
+      window.location.href = redir;
       return;
     }
+
+    // BLOQUEIA IMEDIATAMENTE novos envios
+    localStorage.setItem("lead_enviado", "true");
 
     const fbp = getCookie('_fbp') || gerarFbpValido();
     const fbclid = getFbclidFromUrl();
@@ -267,24 +274,17 @@
       }
     };
 
-    let enviado = false;
-
     try {
-      const res = await fetch("https://meta-capi-server.onrender.com/send-event", {
+      await fetch("https://meta-capi-server.onrender.com/send-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-
-      enviado = res.ok;
-      if (enviado) localStorage.setItem("lead_enviado", "true");
     } catch (e) {
-      console.warn("Falha no envio do evento Lead:", e);
+      console.warn("Erro ao enviar lead:", e);
     }
 
-    setTimeout(() => {
-      window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
-    }, enviado ? 100 : 500);
+    window.location.href = redir;
   }
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -312,6 +312,7 @@
     }
   });
 </script>
+
 
 </body>
 </html>
