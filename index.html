@@ -238,8 +238,12 @@
     return `fb.1.${Math.floor(Date.now() / 1000)}.${Math.floor(Math.random() * 1e10)}`;
   }
 
-  function gerarFbc(fbclid) {
-    return fbclid ? `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}` : null;
+  function gerarFbcSeguro(fbclid) {
+    if (fbclid && fbclid.startsWith("fb.")) return fbclid;
+    if (fbclid && /^[A-Za-z0-9_-]+$/.test(fbclid)) {
+      return `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}`;
+    }
+    return null;
   }
 
   async function irTelegram() {
@@ -250,7 +254,7 @@
 
     const fbp = getCookie('_fbp') || gerarFbpValido();
     const fbclid = getFbclidFromUrl();
-    const fbc = getCookie('_fbc') || gerarFbc(fbclid) || null;
+    const fbc = getCookie('_fbc') || gerarFbcSeguro(fbclid) || null;
     const eventId = "lead_" + Date.now();
 
     const payload = {
@@ -291,7 +295,7 @@
     if (!localStorage.getItem("pageview_enviado")) {
       const fbp = getCookie('_fbp') || gerarFbpValido();
       const fbclid = getFbclidFromUrl();
-      const fbc = getCookie('_fbc') || gerarFbc(fbclid) || null;
+      const fbc = getCookie('_fbc') || gerarFbcSeguro(fbclid) || null;
       const eventId = "pgview_" + Date.now();
 
       fetch("https://meta-capi-server.onrender.com/send-event", {
@@ -304,6 +308,10 @@
             client_user_agent: navigator.userAgent,
             fbp,
             fbc
+          },
+          custom_data: {
+            currency: "BRL",
+            value: 0
           }
         })
       }).then(() => {
