@@ -250,7 +250,7 @@
 
     const fbp = getCookie('_fbp') || gerarFbpValido();
     const fbclid = getFbclidFromUrl();
-    const fbc = getCookie('_fbc') || gerarFbc(fbclid) || null;
+    const fbc = gerarFbc(fbclid) || getCookie('_fbc') || null;
     const eventId = "lead_" + Date.now();
 
     const payload = {
@@ -291,7 +291,7 @@
     if (!localStorage.getItem("pageview_enviado")) {
       const fbp = getCookie('_fbp') || gerarFbpValido();
       const fbclid = getFbclidFromUrl();
-      const fbc = getCookie('_fbc') || gerarFbc(fbclid) || null;
+      const fbc = gerarFbc(fbclid) || getCookie('_fbc') || null;
       const eventId = "pgview_" + Date.now();
 
       fetch("https://meta-capi-server.onrender.com/send-event", {
