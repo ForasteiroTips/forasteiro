@@ -221,6 +221,7 @@
     </a>
   </div>
 
+<!-- substitua TODO o trecho atual do seu <script> por este abaixo -->
 <script>
   function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -253,12 +254,8 @@
     return localStorage.getItem("external_id");
   }
 
+  // ✅ MANTIDA FORA do DOMContentLoaded para os botões funcionarem
   async function irTelegram() {
-    if (localStorage.getItem("lead_enviado")) {
-      window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
-      return;
-    }
-
     const fbp = getCookie('_fbp') || gerarFbpValido();
     const fbclid = getFbclidFromUrl();
     const fbc = getCookie('_fbc') || gerarFbcSeguro(fbclid) || null;
@@ -280,26 +277,20 @@
       }
     };
 
-    let enviado = false;
-
     try {
-      const res = await fetch("https://meta-capi-server.onrender.com/send-event", {
+      await fetch("https://meta-capi-server.onrender.com/send-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-
-      enviado = res.ok;
-      if (enviado) localStorage.setItem("lead_enviado", "true");
     } catch (e) {
       console.warn("Falha no envio do evento Lead:", e);
     }
 
-    setTimeout(() => {
-      window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
-    }, enviado ? 100 : 500);
+    window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
   }
 
+  // ✅ MANTIDA DENTRO do DOMContentLoaded
   window.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem("pageview_enviado")) {
       const fbp = getCookie('_fbp') || gerarFbpValido();
@@ -331,6 +322,6 @@
     }
   });
 </script>
-  
+ 
 </body>
 </html>
