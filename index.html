@@ -221,11 +221,10 @@
     </a>
   </div>
 
-<!-- substitua TODO o trecho atual do seu <script> por este abaixo -->
 <script>
   function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
+    const value = ; ${document.cookie};
+    const parts = value.split(; ${name}=);
     if (parts.length === 2) return parts.pop().split(';').shift();
     return null;
   }
@@ -236,30 +235,22 @@
   }
 
   function gerarFbpValido() {
-    return `fb.1.${Math.floor(Date.now() / 1000)}.${Math.floor(Math.random() * 1e10)}`;
+    return fb.1.${Math.floor(Date.now() / 1000)}.${Math.floor(Math.random() * 1e10)};
   }
 
-  function gerarFbcSeguro(fbclid) {
-    if (fbclid && fbclid.startsWith("fb.")) return fbclid;
-    if (fbclid && /^[A-Za-z0-9_-]+$/.test(fbclid)) {
-      return `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}`;
-    }
-    return null;
+  function gerarFbc(fbclid) {
+    return fbclid ? fb.1.${Math.floor(Date.now() / 1000)}.${fbclid} : null;
   }
 
-  function obterExternalId() {
-    if (!localStorage.getItem("external_id")) {
-      localStorage.setItem("external_id", crypto.randomUUID());
-    }
-    return localStorage.getItem("external_id");
-  }
-
-  // ✅ MANTIDA FORA do DOMContentLoaded para os botões funcionarem
   async function irTelegram() {
+    if (localStorage.getItem("lead_enviado")) {
+      window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
+      return;
+    }
+
     const fbp = getCookie('_fbp') || gerarFbpValido();
     const fbclid = getFbclidFromUrl();
-    const fbc = getCookie('_fbc') || gerarFbcSeguro(fbclid) || null;
-    const external_id = obterExternalId();
+    const fbc = getCookie('_fbc') || gerarFbc(fbclid) || null;
     const eventId = "lead_" + Date.now();
 
     const payload = {
@@ -268,8 +259,7 @@
       user_data: {
         client_user_agent: navigator.userAgent,
         fbp,
-        fbc,
-        external_id
+        fbc
       },
       custom_data: {
         currency: "BRL",
@@ -277,26 +267,31 @@
       }
     };
 
+    let enviado = false;
+
     try {
-      await fetch("https://meta-capi-server.onrender.com/send-event", {
+      const res = await fetch("https://meta-capi-server.onrender.com/send-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+
+      enviado = res.ok;
+      if (enviado) localStorage.setItem("lead_enviado", "true");
     } catch (e) {
       console.warn("Falha no envio do evento Lead:", e);
     }
 
-    window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
+    setTimeout(() => {
+      window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
+    }, enviado ? 100 : 500);
   }
 
-  // ✅ MANTIDA DENTRO do DOMContentLoaded
   window.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem("pageview_enviado")) {
       const fbp = getCookie('_fbp') || gerarFbpValido();
       const fbclid = getFbclidFromUrl();
-      const fbc = getCookie('_fbc') || gerarFbcSeguro(fbclid) || null;
-      const external_id = obterExternalId();
+      const fbc = getCookie('_fbc') || gerarFbc(fbclid) || null;
       const eventId = "pgview_" + Date.now();
 
       fetch("https://meta-capi-server.onrender.com/send-event", {
@@ -308,12 +303,7 @@
           user_data: {
             client_user_agent: navigator.userAgent,
             fbp,
-            fbc,
-            external_id
-          },
-          custom_data: {
-            currency: "BRL",
-            value: 0
+            fbc
           }
         })
       }).then(() => {
