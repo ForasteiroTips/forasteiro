@@ -240,8 +240,8 @@
 
   function gerarFbc(fbclid) {
     if (!fbclid) return null;
-    const limpo = fbclid.split("&")[0];
-    return `fb.1.${Math.floor(Date.now() / 1000)}.${limpo}`;
+    const valido = /^[a-zA-Z0-9-_]+$/.test(fbclid);
+    return valido ? `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}` : null;
   }
 
   async function irTelegram() {
@@ -252,7 +252,7 @@
       return;
     }
 
-    // BLOQUEIA IMEDIATAMENTE novos envios
+    // BLOQUEIO IMEDIATO
     localStorage.setItem("lead_enviado", "true");
 
     const fbp = getCookie('_fbp') || gerarFbpValido();
@@ -281,7 +281,7 @@
         body: JSON.stringify(payload)
       });
     } catch (e) {
-      console.warn("Erro ao enviar lead:", e);
+      console.warn("Erro ao enviar evento Lead:", e);
     }
 
     window.location.href = redir;
@@ -312,7 +312,6 @@
     }
   });
 </script>
-
-
+  
 </body>
 </html>
