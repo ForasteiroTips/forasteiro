@@ -246,6 +246,13 @@
     return null;
   }
 
+  function obterExternalId() {
+    if (!localStorage.getItem("external_id")) {
+      localStorage.setItem("external_id", crypto.randomUUID());
+    }
+    return localStorage.getItem("external_id");
+  }
+
   async function irTelegram() {
     if (localStorage.getItem("lead_enviado")) {
       window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
@@ -255,6 +262,7 @@
     const fbp = getCookie('_fbp') || gerarFbpValido();
     const fbclid = getFbclidFromUrl();
     const fbc = getCookie('_fbc') || gerarFbcSeguro(fbclid) || null;
+    const external_id = obterExternalId();
     const eventId = "lead_" + Date.now();
 
     const payload = {
@@ -263,7 +271,8 @@
       user_data: {
         client_user_agent: navigator.userAgent,
         fbp,
-        fbc
+        fbc,
+        external_id
       },
       custom_data: {
         currency: "BRL",
@@ -296,6 +305,7 @@
       const fbp = getCookie('_fbp') || gerarFbpValido();
       const fbclid = getFbclidFromUrl();
       const fbc = getCookie('_fbc') || gerarFbcSeguro(fbclid) || null;
+      const external_id = obterExternalId();
       const eventId = "pgview_" + Date.now();
 
       fetch("https://meta-capi-server.onrender.com/send-event", {
@@ -307,7 +317,8 @@
           user_data: {
             client_user_agent: navigator.userAgent,
             fbp,
-            fbc
+            fbc,
+            external_id
           },
           custom_data: {
             currency: "BRL",
