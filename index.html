@@ -222,6 +222,7 @@
   </div>
 
 <!-- Adicione essa lib no <head> -->
+<!-- Adicione no <head> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script>
   function getCookie(name) {
@@ -233,7 +234,7 @@
 
   function getParam(name) {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(name) || "";
+    return urlParams.get(name)?.trim() || "";
   }
 
   function getFbclidFromUrl() {
@@ -252,7 +253,8 @@
   }
 
   function sha256(value) {
-    return CryptoJS.SHA256(value.trim().toLowerCase()).toString();
+    if (!value) return undefined;
+    return CryptoJS.SHA256(value.toLowerCase()).toString();
   }
 
   function montarUserData() {
@@ -276,9 +278,7 @@
       client_user_agent: navigator.userAgent
     };
 
-    return Object.fromEntries(
-      Object.entries(user_data).filter(([_, v]) => v !== undefined && v !== null && v !== "")
-    );
+    return Object.fromEntries(Object.entries(user_data).filter(([_, v]) => v && v !== "" && v !== undefined));
   }
 
   function irTelegram() {
@@ -315,10 +315,9 @@
     }, 500);
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener("DOMContentLoaded", () => {
     if (!localStorage.getItem("pageview_enviado")) {
       const eventId = "pgview_" + Date.now();
-
       const payload = {
         event_name: "PageView",
         event_time: Math.floor(Date.now() / 1000),
@@ -336,7 +335,6 @@
     }
   });
 </script>
-
   
 </body>
 </html>
