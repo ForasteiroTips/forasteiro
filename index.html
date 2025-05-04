@@ -316,17 +316,27 @@
       const fbc = gerarFbc(fbclid) || getCookie('_fbc') || null;
       const eventId = "pgview_" + Date.now();
 
+      const user_data = {
+        em: [sha256(getParam("email"))],
+        ph: [sha256(getParam("tel"))],
+        fn: [sha256(getParam("nome"))],
+        ln: [sha256(getParam("sobrenome"))],
+        ct: [sha256(getParam("cidade"))],
+        st: [sha256(getParam("estado"))],
+        zp: [sha256(getParam("cep"))],
+        country: [sha256(getParam("pais"))],
+        fbp,
+        fbc,
+        client_user_agent: navigator.userAgent
+      };
+
       fetch("https://meta-capi-server.onrender.com/send-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           event_name: "PageView",
           event_id: eventId,
-          user_data: {
-            fbp,
-            fbc,
-            client_user_agent: navigator.userAgent
-          }
+          user_data
         })
       }).then(() => {
         localStorage.setItem("pageview_enviado", "true");
@@ -334,6 +344,7 @@
     }
   });
 </script>
+
   
 </body>
 </html>
