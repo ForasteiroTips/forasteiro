@@ -269,8 +269,8 @@
       st: [sha256(getParam("estado"))],
       zp: [sha256(getParam("cep"))],
       country: [sha256(getParam("pais"))],
-      ge: [sha256(getParam("genero"))],         // 👈 gênero (male, female, non-binary)
-      db: [sha256(getParam("nascimento"))],     // 👈 data nascimento (YYYY-MM-DD)
+      ge: [sha256(getParam("genero"))],
+      db: [sha256(getParam("nascimento"))],
       fbp,
       fbc,
       client_user_agent: navigator.userAgent
@@ -281,7 +281,7 @@
     );
   }
 
-  async function irTelegram() {
+  function irTelegram() {
     const redir = "https://forasteirotips.github.io/forasteiro/redir.html";
 
     if (localStorage.getItem("lead_enviado")) {
@@ -292,7 +292,6 @@
     localStorage.setItem("lead_enviado", "true");
 
     const eventId = "lead_" + Date.now();
-
     const payload = {
       event_name: "Lead",
       event_time: Math.floor(Date.now() / 1000),
@@ -312,10 +311,12 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
-      }).catch(e => console.warn("Erro no envio fallback do evento Lead:", e));
+      }).catch(e => console.warn("Erro no fallback do evento Lead:", e));
     }
 
-    window.location.href = redir;
+    setTimeout(() => {
+      window.location.href = redir;
+    }, 500);
   }
 
   window.addEventListener('DOMContentLoaded', () => {
