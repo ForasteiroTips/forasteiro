@@ -269,6 +269,8 @@
       st: [sha256(getParam("estado"))],
       zp: [sha256(getParam("cep"))],
       country: [sha256(getParam("pais"))],
+      ge: [sha256(getParam("genero"))],         // 👈 gênero (male, female, non-binary)
+      db: [sha256(getParam("nascimento"))],     // 👈 data nascimento (YYYY-MM-DD)
       fbp,
       fbc,
       client_user_agent: navigator.userAgent
@@ -337,7 +339,6 @@
     }
   });
 </script>
-
   
 </body>
 </html>
