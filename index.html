@@ -245,7 +245,6 @@
     return `fb.1.${Math.floor(Date.now() / 1000)}.${Math.floor(Math.random() * 1e10)}`;
   }
 
-  // ✅ Filtro aprimorado para fbc válido
   function gerarFbc(fbclid) {
     if (!fbclid) return null;
     const valido = /^[a-zA-Z0-9_-]{10,}$/.test(fbclid);
@@ -256,20 +255,10 @@
     return CryptoJS.SHA256(value.trim().toLowerCase()).toString();
   }
 
-  async function irTelegram() {
-    const redir = "https://forasteirotips.github.io/forasteiro/redir.html";
-
-    if (localStorage.getItem("lead_enviado")) {
-      window.location.href = redir;
-      return;
-    }
-
-    localStorage.setItem("lead_enviado", "true");
-
+  function montarUserData() {
     const fbp = getCookie('_fbp') || gerarFbpValido();
     const fbclid = getFbclidFromUrl();
     const fbc = gerarFbc(fbclid) || getCookie('_fbc') || null;
-    const eventId = "lead_" + Date.now();
 
     const user_data = {
       em: [sha256(getParam("email"))],
@@ -285,62 +274,70 @@
       client_user_agent: navigator.userAgent
     };
 
+    return Object.fromEntries(
+      Object.entries(user_data).filter(([_, v]) => v !== undefined && v !== null && v !== "")
+    );
+  }
+
+  async function irTelegram() {
+    const redir = "https://forasteirotips.github.io/forasteiro/redir.html";
+
+    if (localStorage.getItem("lead_enviado")) {
+      window.location.href = redir;
+      return;
+    }
+
+    localStorage.setItem("lead_enviado", "true");
+
+    const eventId = "lead_" + Date.now();
+
     const payload = {
       event_name: "Lead",
-      event_time: Math.floor(Date.now() / 1000), // ✅ Horário exato
+      event_time: Math.floor(Date.now() / 1000),
       event_id: eventId,
-      user_data,
+      user_data: montarUserData(),
       custom_data: {
         currency: "BRL",
         value: 0
       }
     };
 
-    // ✅ Envio rápido sem await usando sendBeacon
-    navigator.sendBeacon(
-      "https://meta-capi-server.onrender.com/send-event",
-      new Blob([JSON.stringify(payload)], { type: "application/json" })
-    );
+    const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+    const sent = navigator.sendBeacon("https://meta-capi-server.onrender.com/send-event", blob);
+
+    if (!sent) {
+      fetch("https://meta-capi-server.onrender.com/send-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).catch(e => console.warn("Erro no envio fallback do evento Lead:", e));
+    }
 
     window.location.href = redir;
   }
 
   window.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem("pageview_enviado")) {
-      const fbp = getCookie('_fbp') || gerarFbpValido();
-      const fbclid = getFbclidFromUrl();
-      const fbc = gerarFbc(fbclid) || getCookie('_fbc') || null;
       const eventId = "pgview_" + Date.now();
 
-      const user_data = {
-        em: [sha256(getParam("email"))],
-        ph: [sha256(getParam("tel"))],
-        fn: [sha256(getParam("nome"))],
-        ln: [sha256(getParam("sobrenome"))],
-        ct: [sha256(getParam("cidade"))],
-        st: [sha256(getParam("estado"))],
-        zp: [sha256(getParam("cep"))],
-        country: [sha256(getParam("pais"))],
-        fbp,
-        fbc,
-        client_user_agent: navigator.userAgent
+      const payload = {
+        event_name: "PageView",
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: eventId,
+        user_data: montarUserData()
       };
 
       fetch("https://meta-capi-server.onrender.com/send-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_name: "PageView",
-          event_time: Math.floor(Date.now() / 1000), // ✅ Horário exato
-          event_id: eventId,
-          user_data
-        })
+        body: JSON.stringify(payload)
       }).then(() => {
         localStorage.setItem("pageview_enviado", "true");
       });
     }
   });
 </script>
+
   
 </body>
 </html>
