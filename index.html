@@ -303,16 +303,12 @@
       }
     };
 
-    const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
-    const sent = navigator.sendBeacon("https://meta-capi-server.onrender.com/send-event", blob);
-
-    if (!sent) {
-      fetch("https://meta-capi-server.onrender.com/send-event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      }).catch(e => console.warn("Erro no fallback do evento Lead:", e));
-    }
+    fetch("https://meta-capi-server.onrender.com/send-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      keepalive: true
+    }).catch(e => console.warn("Erro ao enviar evento Lead:", e));
 
     setTimeout(() => {
       window.location.href = redir;
@@ -340,6 +336,7 @@
     }
   });
 </script>
+
   
 </body>
 </html>
