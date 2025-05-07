@@ -294,13 +294,13 @@
     const eventId = "lead_" + Date.now();
     const payload = {
       event_name: "Lead",
-      event_time: Math.floor(Date.now() / 1000),
       event_id: eventId,
       user_data: montarUserData(),
       custom_data: {
         currency: "BRL",
         value: 0
       }
+      // event_time removido para evitar erro de horário futuro
     };
 
     fetch("https://meta-capi-server.onrender.com/send-event", {
@@ -320,9 +320,9 @@
       const eventId = "pgview_" + Date.now();
       const payload = {
         event_name: "PageView",
-        event_time: Math.floor(Date.now() / 1000),
         event_id: eventId,
         user_data: montarUserData()
+        // event_time removido para evitar erro de horário futuro
       };
 
       fetch("https://meta-capi-server.onrender.com/send-event", {
