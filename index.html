@@ -246,10 +246,19 @@
     return `fb.1.${Math.floor(Date.now() / 1000)}.${Math.floor(Math.random() * 1e10)}`;
   }
 
-  function gerarFbc(fbclid) {
-    if (!fbclid) return null;
-    const valido = /^[a-zA-Z0-9_-]{10,}$/.test(fbclid);
-    return valido ? `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}` : null;
+  function gerarFbcValido() {
+    const fbclid = getFbclidFromUrl();
+    if (fbclid && /^[a-zA-Z0-9_-]{10,}$/.test(fbclid)) {
+      return `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}`;
+    }
+
+    const cookieFbc = getCookie('_fbc');
+    if (cookieFbc && /^fb\.1\.\d+\.[a-zA-Z0-9_-]+$/.test(cookieFbc)) {
+      return cookieFbc;
+    }
+
+    // fallback para evitar erro na API (não ideal para atribuição, mas necessário)
+    return `fb.1.${Math.floor(Date.now() / 1000)}.${Math.floor(Math.random() * 1e10)}`;
   }
 
   function sha256(value) {
@@ -259,8 +268,7 @@
 
   function montarUserData() {
     const fbp = getCookie('_fbp') || gerarFbpValido();
-    const fbclid = getFbclidFromUrl();
-    const fbc = gerarFbc(fbclid) || getCookie('_fbc') || null;
+    const fbc = gerarFbcValido();
 
     const user_data = {
       em: [sha256(getParam("email"))],
@@ -278,7 +286,7 @@
       client_user_agent: navigator.userAgent
     };
 
-    return Object.fromEntries(Object.entries(user_data).filter(([_, v]) => v && v !== "" && v !== undefined));
+    return Object.fromEntries(Object.entries(user_data).filter(([_, v]) => v !== undefined && v !== null && v !== ""));
   }
 
   function irTelegram() {
@@ -294,7 +302,7 @@
     const eventId = "lead_" + Date.now();
     const payload = {
       event_name: "Lead",
-      event_time: Math.floor(Date.now() / 1000), // <- ADICIONADO
+      event_time: Math.floor(Date.now() / 1000),
       event_id: eventId,
       user_data: montarUserData(),
       custom_data: {
@@ -320,7 +328,7 @@
       const eventId = "pgview_" + Date.now();
       const payload = {
         event_name: "PageView",
-        event_time: Math.floor(Date.now() / 1000), // <- ADICIONADO
+        event_time: Math.floor(Date.now() / 1000),
         event_id: eventId,
         user_data: montarUserData()
       };
@@ -335,6 +343,7 @@
     }
   });
 </script>
+
   
 </body>
 </html>
