@@ -205,9 +205,9 @@
     try {
       const d = new Date(); d.setTime(d.getTime() + days*24*60*60*1000);
       const expires = "expires=" + d.toUTCString();
-      const domain = location.hostname; // usa o host atual
+      const domain = location.hostname;
       document.cookie = `${name}=${value};${expires};path=/;domain=${domain};Secure;SameSite=Lax`;
-    } catch(e) { /* no-op */ }
+    } catch(e) {}
   }
   function genFbp() { return 'fb.1.' + Date.now() + '.' + Math.floor(Math.random()*1e10); }
   function genFbcFromFbclid() {
@@ -215,7 +215,7 @@
     return fbclid ? ('fb.1.' + Date.now() + '.' + fbclid) : null;
   }
 
-  // ===== Envio Lead via CAPI =====
+  // ===== Envio Lead via CAPI (fetch com keepalive) =====
   function enviarCAPI(eventId) {
     let fbp = getCookie('_fbp'); 
     if (!fbp) { fbp = genFbp(); setCookie('_fbp', fbp); }
@@ -226,17 +226,7 @@
     const payload = { event_id: eventId, source_url: location.href, fbp, fbc };
     console.log('➡️ Enviando CAPI (payload):', payload);
 
-    // 1) Tenta sendBeacon (rápido, não bloqueia redirect)
-    const ok = navigator.sendBeacon(
-      'https://meu-app-capi-restless-night-2183.fly.dev/capi/lead',
-      new Blob([JSON.stringify(payload)], { type: 'application/json' })
-    );
-    if (ok) {
-      console.log('✅ sendBeacon aceito pelo navegador');
-      return;
-    }
-
-    // 2) Fallback: fetch com keepalive
+    // POST com keepalive (vai continuar mesmo durante unload/redirect)
     try {
       fetch('https://meu-app-capi-restless-night-2183.fly.dev/capi/lead', {
         method: 'POST',
@@ -244,10 +234,10 @@
         body: JSON.stringify(payload),
         mode: 'cors',
         keepalive: true
-      }).then(r => console.log('✅ fetch keepalive status:', r.status))
-        .catch(err => console.warn('⚠️ fetch keepalive falhou:', err));
+      }).then(r => console.log('✅ CAPI status:', r.status))
+        .catch(err => console.warn('⚠️ CAPI falhou:', err));
     } catch(e) {
-      console.warn('⚠️ Erro ao usar fetch keepalive:', e);
+      console.warn('⚠️ Erro ao enviar CAPI:', e);
     }
   }
 
@@ -257,7 +247,7 @@
 
     enviarCAPI(eventId);
 
-    // delay maior para garantir entrega antes do redirect
+    // delay para garantir envio antes do redirect
     setTimeout(function(){
       window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
     }, 400);
