@@ -196,39 +196,57 @@
   </div>
 
 <script>
-    // Helpers para fbp/fbc sem Pixel:
-    function getCookie(name) {
-      return document.cookie.split('; ').find(r => r.startsWith(name+'='))?.split('=')[1] || null;
-    }
-    function genFbp() {
-      // formato: fb.1.<timestamp>.<random>
-      return 'fb.1.' + Date.now() + '.' + Math.floor(Math.random() * 10_000_000_000);
-    }
-    function genFbcFromFbclid() {
-      const fbclid = new URLSearchParams(location.search).get('fbclid');
-      return fbclid ? ('fb.1.' + Date.now() + '.' + fbclid) : null;
-    }
+  // Helpers para fbp/fbc sem Pixel:
+  function getCookie(name) {
+    return document.cookie.split('; ').find(r => r.startsWith(name+'='))?.split('=')[1] || null;
+  }
+  function genFbp() { return 'fb.1.' + Date.now() + '.' + Math.floor(Math.random()*1e10); }
+  function genFbcFromFbclid() {
+    const fbclid = new URLSearchParams(location.search).get('fbclid');
+    return fbclid ? ('fb.1.' + Date.now() + '.' + fbclid) : null;
+  }
 
-    // Envia Lead via CAPI (servidor)
-    function enviarCAPI(eventId) {
-      const payload = {
-        event_id: eventId,
-        source_url: location.href,
-        fbp: getCookie('_fbp') || genFbp(),
-        fbc: getCookie('_fbc') || genFbcFromFbclid()
-      };
-      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-      // sua API no Fly:
-      navigator.sendBeacon('https://meu-app-capi-restless-night-2183.fly.dev/capi/lead', blob);
-    }
+  function enviarCAPI(eventId) {
+    const payload = {
+      event_id: eventId,
+      source_url: location.href,
+      fbp: getCookie('_fbp') || genFbp(),
+      fbc: getCookie('_fbc') || genFbcFromFbclid()
+    };
 
-    function irTelegram() {
-      const eventId = (crypto && crypto.randomUUID) ? crypto.randomUUID()
-                      : ('lead-' + Date.now() + '-' + Math.random().toString(36).slice(2));
-      enviarCAPI(eventId); // só servidor
+    // 1) Tenta sendBeacon (não bloqueia o redirect)
+    const ok = navigator.sendBeacon(
+      'https://meu-app-capi-restless-night-2183.fly.dev/capi/lead',
+      new Blob([JSON.stringify(payload)], { type: 'application/json' })
+    );
+
+    // 2) Se o navegador não suportar/recusar, usa fetch com keepalive
+    if (!ok) {
+      try {
+        fetch('https://meu-app-capi-restless-night-2183.fly.dev/capi/lead', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          mode: 'cors',
+          keepalive: true    // permite continuar durante unload/redirect
+        }).catch(()=>{});
+      } catch(e) {}
+    }
+  }
+
+  function irTelegram() {
+    const eventId = (crypto && crypto.randomUUID) ? crypto.randomUUID()
+                    : ('lead-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+
+    enviarCAPI(eventId);
+
+    // micro-delay (100–200ms) aumenta a taxa de entrega em alguns navegadores
+    setTimeout(function(){
       window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
-    }
-  </script>
+    }, 120);
+  }
+</script>
+
 
 </body>
 </html>
