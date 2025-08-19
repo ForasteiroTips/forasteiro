@@ -6,7 +6,28 @@
   <title>Furious Tips</title>
   <link rel="icon" href="FUR.png" type="image/png">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
-  <style>
+  
+<!-- Meta Pixel Code -->
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+
+  fbq('init', '1381611613020370');
+  fbq('track', 'PageView');
+</script>
+<noscript>
+  <img height="1" width="1"
+  src="https://www.facebook.com/tr?id=1381611613020370&ev=PageView&noscript=1"/>
+</noscript>
+<!-- End Meta Pixel Code -->
+
+<style>
     body {
       margin: 0;
       font-family: 'Orbitron', sans-serif;
@@ -195,10 +216,42 @@
   </div>
 
 <script>
+  // util: ler cookies _fbp e _fbc criados pelo Pixel
+  function getCookie(name) {
+    return document.cookie.split('; ').find(r => r.startsWith(name+'='))?.split('=')[1] || null;
+  }
+
+  async function enviarCAPI(eventId) {
+    const payload = {
+      event_id: eventId,
+      source_url: location.href,
+      fbp: getCookie('_fbp'),
+      fbc: getCookie('_fbc') || (new URLSearchParams(location.search).get('fbclid')
+            ? 'fb.1.' + Date.now() + '.' + new URLSearchParams(location.search).get('fbclid')
+            : null)
+    };
+
+    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    // 👉 TROQUE pela URL do seu app no Fly:
+    navigator.sendBeacon('https://meu-app-capi-restless-night-2183.fly.dev/capi/lead', blob);
+  }
+
   function irTelegram() {
+    // 1) gera um eventID único p/ deduplicação
+    const eventId = (crypto && crypto.randomUUID) ? crypto.randomUUID()
+                    : ('lead-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+
+    // 2) dispara o Lead no Pixel com eventID
+    fbq('track', 'Lead', {}, { eventID: eventId });
+
+    // 3) envia o mesmo evento via CAPI (servidor)
+    enviarCAPI(eventId);
+
+    // 4) redireciona
     window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
   }
 </script>
+
   
 </body>
 </html>
