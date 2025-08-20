@@ -215,11 +215,11 @@ async function sendLeadAndRedirect(){
   };
 
   try {
-    await fetch('https://SEU_BACKEND/capi/lead', {
+    await fetch('https://metaads/capi/lead', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Frontend-Key': 'SUA_CHAVE_AQUI'   // igual ao backend
+        'X-Frontend-Key': 'furioustips'   // igual ao backend
       },
       body: JSON.stringify(payload)
     });
