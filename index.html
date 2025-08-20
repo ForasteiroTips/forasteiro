@@ -195,5 +195,39 @@
     </a>
   </div>
 
+<script>
+function uuid(){
+  return (crypto.randomUUID?.() ||
+    ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,
+      c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)));
+}
+
+async function goLeadServerOnly(){
+  const eventId = uuid();
+
+  // Dispara o Lead somente no servidor (CAPI)
+  // Enviando também a URL atual para o servidor usar como event_source_url
+  try{
+    await fetch('https://SEU_BACKEND/capi/lead', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        event_id: eventId,
+        value: 0,
+        currency: 'BRL',
+        event_source_url: window.location.href
+        // Se quiser, inclua email/phone coletados em formulário:
+        // email: emailInput.value,
+        // phone: phoneInput.value
+      })
+    });
+  }catch(e){ /* ignora erro pro usuário não travar */ }
+
+  // Redireciona para sua página redir (sem alterar o redir.html)
+  window.location.href = 'https://forasteirotips.github.io/forasteiro/redir.html';
+}
+</script>
+
+
 </body>
 </html>
