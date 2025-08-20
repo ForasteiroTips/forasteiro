@@ -177,7 +177,7 @@
   <div class="description">
     Clique no botão abaixo e vamos fazer uma ALAVANCAGEM de 20,00 R$ para 500,00 R$!
   </div>
-  <button class="button" onclick="irTelegram()">ACESSO GRÁTIS CLICK AQUI</button>
+  <button class="button btn-lead"">ACESSO GRÁTIS CLICK AQUI</button>
 
   <div class="prints-title">💸RESULTADOS REAIS DOS SEGUIDORES!💸</div>
   <div class="prints">
@@ -185,7 +185,7 @@
     <img src="BILHETE2.PNG" alt="Bilhete 2">
     <img src="BILHETE3.PNG" alt="Bilhete 3">
   </div>
-  <button class="button" onclick="irTelegram()">ACESSO GRÁTIS CLICK AQUI</button>
+  <button class="button btn-lead">ACESSO GRÁTIS CLICK AQUI</button>
   
   <div class="store-title">📲 BAIXE O APP DO TELEGRAM!</div>
   <div class="store-buttons">
@@ -202,31 +202,46 @@ function uuid(){
       c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)));
 }
 
-async function goLeadServerOnly(){
+async function sendLeadAndRedirect(){
   const eventId = uuid();
 
-  // Dispara o Lead somente no servidor (CAPI)
-  // Enviando também a URL atual para o servidor usar como event_source_url
-  try{
+  const payload = {
+    event_id: eventId,
+    value: 0,
+    currency: 'BRL',
+    consent: true,                           // ou false se não tiver LGPD
+    event_source_url: window.location.href,
+    landing_url: window.location.href
+  };
+
+  try {
     await fetch('https://SEU_BACKEND/capi/lead', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        event_id: eventId,
-        value: 0,
-        currency: 'BRL',
-        event_source_url: window.location.href
-        // Se quiser, inclua email/phone coletados em formulário:
-        // email: emailInput.value,
-        // phone: phoneInput.value
-      })
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Frontend-Key': 'SUA_CHAVE_AQUI'   // igual ao backend
+      },
+      body: JSON.stringify(payload)
     });
-  }catch(e){ /* ignora erro pro usuário não travar */ }
+  } catch(e) {
+    // se der erro, não trava o usuário
+  }
 
-  // Redireciona para sua página redir (sem alterar o redir.html)
+  // redireciona para seu redir.html
   window.location.href = 'https://forasteirotips.github.io/forasteiro/redir.html';
 }
+
+// === Auto-binding em todos os botões/links com classe .btn-lead ===
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".btn-lead").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      sendLeadAndRedirect();
+    });
+  });
+});
 </script>
+
 
 
 </body>
