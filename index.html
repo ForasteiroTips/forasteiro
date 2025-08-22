@@ -6,8 +6,7 @@
   <title>Furious Tips</title>
   <link rel="icon" href="FUR.png" type="image/png">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
-
-<style>
+  <style>
     body {
       margin: 0;
       font-family: 'Orbitron', sans-serif;
@@ -177,7 +176,7 @@
   <div class="description">
     Clique no botão abaixo e vamos fazer uma ALAVANCAGEM de 20,00 R$ para 500,00 R$!
   </div>
-  <button class="button btn-lead">ACESSO GRÁTIS CLICK AQUI</button>
+  <button class="button" onclick="irTelegram()">ACESSO GRÁTIS CLICK AQUI</button>
 
   <div class="prints-title">💸RESULTADOS REAIS DOS SEGUIDORES!💸</div>
   <div class="prints">
@@ -185,7 +184,7 @@
     <img src="BILHETE2.PNG" alt="Bilhete 2">
     <img src="BILHETE3.PNG" alt="Bilhete 3">
   </div>
-  <button class="button btn-lead">ACESSO GRÁTIS CLICK AQUI</button>
+  <button class="button" onclick="irTelegram()">ACESSO GRÁTIS CLICK AQUI</button>
   
   <div class="store-title">📲 BAIXE O APP DO TELEGRAM!</div>
   <div class="store-buttons">
@@ -196,53 +195,10 @@
   </div>
 
 <script>
-function uuid(){
-  return (crypto.randomUUID?.() ||
-    ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,
-      c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)));
-}
-
-async function sendLeadAndRedirect(){
-  const eventId = uuid();
-
-  const payload = {
-    event_id: eventId,
-    value: 0,
-    currency: 'BRL',
-    consent: true,                           // ou false se não tiver LGPD
-    event_source_url: window.location.href,
-    landing_url: window.location.href
-  };
-
-  try {
-    await fetch('https://metaads/capi/lead', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Frontend-Key': 'furioustips'   // igual ao backend
-      },
-      body: JSON.stringify(payload)
-    });
-  } catch(e) {
-    // se der erro, não trava o usuário
+  function irTelegram() {
+    window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
   }
-
-  // redireciona para seu redir.html
-  window.location.href = 'https://forasteirotips.github.io/forasteiro/redir.html';
-}
-
-// === Auto-binding em todos os botões/links com classe .btn-lead ===
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".btn-lead").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.preventDefault();
-      sendLeadAndRedirect();
-    });
-  });
-});
 </script>
-
-
-
+  
 </body>
 </html>
