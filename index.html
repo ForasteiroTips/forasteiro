@@ -196,7 +196,7 @@
 
 <script>
 (function () {
-  const BACKEND_URL = "https://capi-furious.fly.dev/capi/lead";
+  const BACKEND_URL = "https://capi-furious.fly.dev/capi/lead"; // troque se mudar o app
 
   function setCookie(n, v, days) {
     const d = new Date(); d.setTime(d.getTime() + days*864e5);
@@ -231,11 +231,11 @@
     const payload = {
       event_id,
       event_source_url: location.href,
-      user_data: Object.assign({ fbp, fbc }, extraUserData),
+      user_data: Object.assign({ fbp, fbc }, extraUserData),  // se quiser, passe { em, ph, fn, ln } (serão hasheados no servidor)
       custom_data: Object.assign({ currency: "BRL", value: 0 }, customData)
     };
 
-    // 1) Tenta beacon (não bloqueia o redirect)
+    // 1) Tenta sendBeacon (não bloqueia redirect)
     try {
       if (navigator.sendBeacon) {
         const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
@@ -243,8 +243,7 @@
       }
     } catch (_) {}
 
-    // 2) Dispara um fetch "fire-and-forget" logo depois para garantir entrega
-    //    (usa o MESMO event_id; a Meta deduplica)
+    // 2) Garante com fetch usando o MESMO event_id (Meta deduplica por event_id)
     setTimeout(() => {
       fetch(BACKEND_URL, {
         method: "POST",
@@ -257,15 +256,13 @@
     }, 60);
   }
 
-  // Seu botão:
+  // Exemplo: seu botão
   window.irTelegram = function () {
     try { sendLead(); } catch (_) {}
-    // redireciona em seguida
     window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html";
   };
 })();
 </script>
-
 
   
 </body>
