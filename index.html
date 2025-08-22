@@ -103,44 +103,63 @@
   </div>
 
 <script>
-  // Lê cookie simples
-  function getCookie(name) {
-    return document.cookie.split('; ').find(r => r.startsWith(name+'='))?.split('=')[1] || null;
-  }
-  // Constrói fbc SOMENTE se houver fbclid
-  function buildFbc() {
-    const fbclid = new URLSearchParams(location.search).get('fbclid');
-    return fbclid ? ('fb.1.' + Date.now() + '.' + fbclid) : null;
-  }
+    // ===== Helpers =====
+    function getCookie(name) {
+      return document.cookie.split('; ').find(r => r.startsWith(name+'='))?.split('=')[1] || null;
+    }
+    function buildFbc() {
+      const fbclid = new URLSearchParams(location.search).get('fbclid');
+      return fbclid ? ('fb.1.' + Date.now() + '.' + fbclid) : null;
+    }
+    function sendCapi(path, body) {
+      return fetch('https://metaads.fly.dev' + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        mode: 'cors',
+        keepalive: true
+      }).catch(()=>{});
+    }
 
-  function enviarCAPI(eventId) {
-    const fbp = getCookie('_fbp') || null; // usa só se existir
-    const fbc = buildFbc();                // só se veio de anúncio
+    // ===== PageView (servidor) — 1x por sessão =====
+    function sendPageViewOnce() {
+      if (sessionStorage.getItem('pv_sent') === '1') return;
+      const eventId = (crypto && crypto.randomUUID) ? crypto.randomUUID()
+                      : ('pv-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+      const fbp = getCookie('_fbp') || null;
+      const fbc = buildFbc();
 
-    const payload = {
-      event_id: eventId,
-      source_url: location.href,
-      ...(fbp ? { fbp } : {}),
-      ...(fbc ? { fbc } : {})
-    };
-    console.log('➡️ CAPI payload:', payload);
+      const payload = {
+        event_id: eventId,
+        source_url: location.href,
+        ...(fbp ? { fbp } : {}),
+        ...(fbc ? { fbc } : {})
+      };
+      sendCapi('/capi/pageview', payload);
+      sessionStorage.setItem('pv_sent', '1');
+    }
+    window.addEventListener('DOMContentLoaded', sendPageViewOnce);
 
-    fetch('https://metaads.fly.dev/capi/lead', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      mode: 'cors',
-      keepalive: true
-    }).catch(()=>{});
-  }
+    // ===== Lead (servidor) =====
+    function enviarLeadCAPI(eventId) {
+      const fbp = getCookie('_fbp') || null;
+      const fbc = buildFbc();
+      const payload = {
+        event_id: eventId,
+        source_url: location.href,
+        ...(fbp ? { fbp } : {}),
+        ...(fbc ? { fbc } : {})
+      };
+      sendCapi('/capi/lead', payload);
+    }
 
-  function irTelegram() {
-    const eventId = (crypto && crypto.randomUUID) ? crypto.randomUUID()
-                    : ('lead-' + Date.now() + '-' + Math.random().toString(36).slice(2));
-    enviarCAPI(eventId);
-    setTimeout(()=>{ window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html"; }, 400);
-  }
-</script>
+    function irTelegram() {
+      const eventId = (crypto && crypto.randomUUID) ? crypto.randomUUID()
+                      : ('lead-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+      enviarLeadCAPI(eventId);
+      setTimeout(()=>{ window.location.href = "https://forasteirotips.github.io/forasteiro/redir.html"; }, 400);
+    }
+  </script>
 
 
 </body>
