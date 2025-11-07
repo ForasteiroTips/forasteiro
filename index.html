@@ -103,130 +103,64 @@
   </div>
 
 <script>
-/*
-  CLIENT-SIDE CAPI SENDER (corrigido)
-  - envia event_id, event_name, event_time, action_source, custom_data (value+currency)
-  - envia fbp/fbc
-  - sendBeacon -> fetch fallback (keepalive)
-  - configuração: CAPI_BASE (troque para seu servidor)
-*/
-
-const CAPI_BASE = (function(){
-  // ajuste aqui se usar outro domínio; por padrão usa seu host de produção se detectado,
-  // senão usa o host atual (útil em testes locais).
-  // Exemplo antigo: 'https://meta-fd3h.onrender.com'
-  return window.__CAPI_BASE__ || 'https://meta-fd3h.onrender.com';
-})();
-
-// ===== Helpers =====
-function getCookie(name) {
-  return document.cookie.split('; ').find(r => r.startsWith(name+'='))?.split('=')[1] || null;
-}
-function buildFbc() {
-  const fbclid = new URLSearchParams(location.search).get('fbclid');
-  return fbclid ? ('fb.1.' + Date.now() + '.' + fbclid) : null;
-}
-function genEventId(prefix='ev') {
-  return (crypto && crypto.randomUUID) ? crypto.randomUUID() : (prefix + '-' + Date.now() + '-' + Math.random().toString(36).slice(2));
-}
-
-// sendBeacon + fetch fallback
-function sendCapi(path, body) {
-  const url = (CAPI_BASE.replace(/\/$/, '') + path);
-  const json = JSON.stringify(body);
-
-  // Try sendBeacon
-  if (navigator.sendBeacon) {
-    try {
-      const blob = new Blob([json], { type: 'application/json' });
-      const ok = navigator.sendBeacon(url, blob);
-      if (ok) {
-        return Promise.resolve({ ok: true, via: 'beacon' });
-      }
-      // fallback to fetch
-    } catch (e) {
-      // fallthrough
+    // ===== Helpers =====
+    function getCookie(name) {
+      return document.cookie.split('; ').find(r => r.startsWith(name+'='))?.split('=')[1] || null;
     }
-  }
-
-  // Fetch fallback with keepalive
-  return fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: json,
-    mode: 'cors',
-    keepalive: true
-  }).then(res => ({ ok: res.ok, status: res.status, via: 'fetch' }))
-    .catch(err => ({ ok: false, error: String(err) }));
-}
-
-// ===== PageView (1x por sessão) =====
-function sendPageViewOnce() {
-  try {
-    if (sessionStorage.getItem('pv_sent') === '1') return;
-  } catch(e){}
-  const eventId = genEventId('pv');
-  const fbp = getCookie('_fbp') || null;
-  const fbc = buildFbc();
-
-  const payload = {
-    event_id: eventId,
-    event_name: 'PageView',
-    event_time: Math.floor(Date.now() / 1000),
-    action_source: 'website',
-    source_url: location.href,
-    ...(fbp ? { fbp } : {}),
-    ...(fbc ? { fbc } : {}),
-    custom_data: { value: 0.00, currency: 'BRL' }
-  };
-
-  sendCapi('/capi/pageview', payload);
-  try { sessionStorage.setItem('pv_sent', '1'); } catch(e){}
-}
-window.addEventListener('DOMContentLoaded', sendPageViewOnce);
-
-// ===== Lead (servidor) =====
-function enviarLeadCAPI(eventId, value = 0.00, currency = 'BRL') {
-  const fbp = getCookie('_fbp') || null;
-  const fbc = buildFbc();
-
-  const payload = {
-    event_id: eventId,
-    event_name: 'Lead',
-    event_time: Math.floor(Date.now() / 1000),
-    action_source: 'website',
-    source_url: location.href,
-    ...(fbp ? { fbp } : {}),
-    ...(fbc ? { fbc } : {}),
-    custom_data: {
-      value: Number(value || 0),
-      currency: currency || 'BRL'
+    function buildFbc() {
+      const fbclid = new URLSearchParams(location.search).get('fbclid');
+      return fbclid ? ('fb.1.' + Date.now() + '.' + fbclid) : null;
     }
-  };
-
-  // opcional: dispara o pixel client-side também se existir (aumenta chance de correspondência)
-  try {
-    if (window.fbq && typeof window.fbq === 'function') {
-      try {
-        window.fbq('track', 'Lead', { value: payload.custom_data.value, currency: payload.custom_data.currency });
-      } catch (e) { /* ignore */ }
+    function sendCapi(path, body) {
+      return fetch('https://meta-fd3h.onrender.com' + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        mode: 'cors',
+        keepalive: true
+      }).catch(()=>{});
     }
-  } catch(e){}
 
-  return sendCapi('/capi/lead', payload);
-}
+    // ===== PageView (servidor) — 1x por sessão =====
+    function sendPageViewOnce() {
+      if (sessionStorage.getItem('pv_sent') === '1') return;
+      const eventId = (crypto && crypto.randomUUID) ? crypto.randomUUID()
+                      : ('pv-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+      const fbp = getCookie('_fbp') || null;
+      const fbc = buildFbc();
 
-function irTelegram() {
-  const eventId = genEventId('lead');
-  // se quiser enviar valor real, passe por exemplo: enviarLeadCAPI(eventId, 12.50, 'BRL')
-  enviarLeadCAPI(eventId)
-    .then(result => {
-      console.log('Lead send result:', result);
-    })
-    .catch(err => console.warn('Lead send error:', err));
-  // tenta dar tempo para beacon/fetch com keepalive
-  setTimeout(()=>{ window.location.href = "https://striketips.github.io/STRIKETIPS/redir.html"; }, 400);
-}
-</script>
+      const payload = {
+        event_id: eventId,
+        source_url: location.href,
+        ...(fbp ? { fbp } : {}),
+        ...(fbc ? { fbc } : {})
+      };
+      sendCapi('/capi/pageview', payload);
+      sessionStorage.setItem('pv_sent', '1');
+    }
+    window.addEventListener('DOMContentLoaded', sendPageViewOnce);
+
+    // ===== Lead (servidor) =====
+    function enviarLeadCAPI(eventId) {
+      const fbp = getCookie('_fbp') || null;
+      const fbc = buildFbc();
+      const payload = {
+        event_id: eventId,
+        source_url: location.href,
+        ...(fbp ? { fbp } : {}),
+        ...(fbc ? { fbc } : {})
+      };
+      sendCapi('/capi/lead', payload);
+    }
+
+    function irTelegram() {
+      const eventId = (crypto && crypto.randomUUID) ? crypto.randomUUID()
+                      : ('lead-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+      enviarLeadCAPI(eventId);
+      setTimeout(()=>{ window.location.href = "https://striketips.github.io/STRIKETIPS/redir.html"; }, 400);
+    }
+  </script>
+
+
 </body>
 </html>
