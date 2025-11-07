@@ -148,7 +148,12 @@
         event_id: eventId,
         source_url: location.href,
         ...(fbp ? { fbp } : {}),
-        ...(fbc ? { fbc } : {})
+        ...(fbc ? { fbc } : {}),
+        // adiciona custom_data com value + currency (obrigatório pro Meta)
+        custom_data: {
+          value: 0.00,
+          currency: "BRL"
+        }
       };
       sendCapi('/capi/lead', payload);
     }
